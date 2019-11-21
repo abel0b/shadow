@@ -1,14 +1,14 @@
 # 3d
 
-# Usage
-## build
+## Usage
+### build
 ```shell
 mkdir build
 cd build
 cmake ..
 make
 ```
-## test
+### test
 ```shell
 make test
 ```
