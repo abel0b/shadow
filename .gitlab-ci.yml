@@ -8,7 +8,7 @@ build:
 
     before_script:
         - apt update
-        - apt -y install make cmake
+        - apt -y install make cmake mesa-utils
 
     script:
         - cmake .
@@ -20,7 +20,7 @@ test:
 
     before_script:
         - apt update
-        - apt -y install make cmake
+        - apt -y install make cmake mesa-utils
 
     script:
         - cmake .
