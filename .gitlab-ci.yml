@@ -11,7 +11,7 @@ build:
         - apt -y install make cmake
 
     script:
-        - cmake
+        - cmake .
         - make
 
 test:
