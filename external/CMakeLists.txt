@@ -13,12 +13,11 @@ add_library(
     imgui/examples/imgui_impl_opengl3.cpp
 )
 
+add_subdirectory(glew)
 add_subdirectory(glfw)
 
-include_directories(imgui glfw/include)
-
-# find_package(GLEW REQUIRED)
-
-add_subdirectory(glew)
-
-include_directories(${GLEW_INCLUDE_DIRS})
+include_directories(
+    imgui
+    glfw/include
+    glew/include
+)
