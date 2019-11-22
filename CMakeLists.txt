@@ -12,10 +12,6 @@ if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui)
     )
 endif()
 
-find_package(GLEW REQUIRED)
-
-include_directories(${GLEW_INCLUDE_DIRS})
-
 include_directories(
     include
     external

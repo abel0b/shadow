@@ -1,3 +1,8 @@
+include(ExternalProject)
+
+set(OpenGL_GL_PREFERENCE "GLVND")
+set(EXTERNAL_DIR "${CMAKE_SOURCE_DIR}/external")
+
 add_library(
     imgui
     imgui/imgui.cpp
@@ -11,3 +16,9 @@ add_library(
 add_subdirectory(glfw)
 
 include_directories(imgui glfw/include)
+
+# find_package(GLEW REQUIRED)
+
+add_subdirectory(glew)
+
+include_directories(${GLEW_INCLUDE_DIRS})
