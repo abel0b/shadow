@@ -3,21 +3,25 @@ stages:
     - test
 
 build:
-    stage: test
     image: gcc
-    before-script:
+    stage: build
+
+    before_script:
         - apt update
-        - apt install -y cmake
+        - apt -y install make cmake libx11-dev xorg-dev libglu1-mesa-dev freeglut3-dev libglew1.5 libglew1.5-dev libglu1-mesa libglu1-mesa-dev libgl1-mesa-glx libgl1-mesa-dev
+
     script:
         - cmake .
         - make
 
 test:
-    stage: test
     image: gcc
-    before-script:
+    stage: test
+
+    before_script:
         - apt update
-        - apt install -y cmake
+        - apt -y install make cmake libx11-dev xorg-dev libglu1-mesa-dev freeglut3-dev libglew1.5 libglew1.5-dev libglu1-mesa libglu1-mesa-dev libgl1-mesa-glx libgl1-mesa-dev
+
     script:
         - cmake .
         - make
