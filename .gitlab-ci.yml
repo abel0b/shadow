@@ -14,6 +14,9 @@ build:
         - cmake .
         - make
 
+    cache:
+        untracked: true
+
 test:
     image: gcc
     stage: test
@@ -26,3 +29,6 @@ test:
         - cmake .
         - make
         - make test
+
+    cache:
+        untracked: true
