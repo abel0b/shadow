@@ -7,3 +7,9 @@
 [submodule "external/imgui"]
 	path = external/imgui
 	url = https://github.com/ocornut/imgui.git
+[submodule "external/cimg"]
+	path = external/cimg
+	url = https://framagit.org/dtschump/CImg.git
+[submodule "external/assimp"]
+	path = external/assimp
+	url = https://github.com/assimp/assimp.git

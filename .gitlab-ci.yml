@@ -1,0 +1,24 @@
+stages:
+    - build
+    - test
+
+build:
+    stage: test
+    image: gcc
+    before-script:
+        - apt update
+        - apt install -y cmake
+    script:
+        - cmake .
+        - make
+
+test:
+    stage: test
+    image: gcc
+    before-script:
+        - apt update
+        - apt install -y cmake
+    script:
+        - cmake .
+        - make
+        - make test

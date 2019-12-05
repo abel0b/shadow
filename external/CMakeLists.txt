@@ -9,12 +9,15 @@ add_library(
     imgui/imgui_demo.cpp
     imgui/imgui_draw.cpp
     imgui/imgui_widgets.cpp
-    imgui/examples/imgui_impl_glfw.cpp
-    imgui/examples/imgui_impl_opengl3.cpp
+    imgui-backend/imgui_impl_glfw.cpp
+    imgui-backend/imgui_impl_opengl3.cpp
 )
+
+target_compile_definitions(imgui PUBLIC IMGUI_IMPL_OPENGL_LOADER_GLEW)
 
 add_subdirectory(glew)
 add_subdirectory(glfw)
+add_subdirectory(assimp)
 
 include_directories(
     imgui

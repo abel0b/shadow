@@ -1,6 +1,7 @@
 add_executable(
     3d
     main.cpp
+    App.cpp
 )
 
 target_link_libraries(

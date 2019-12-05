@@ -6,10 +6,9 @@
 mkdir build
 cd build
 cmake ..
-make
+make -j8
 ```
 ### test
 ```shell
 make test
 ```
-
