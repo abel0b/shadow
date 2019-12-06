@@ -1,7 +1,10 @@
 include(ExternalProject)
 
 set(OpenGL_GL_PREFERENCE "GLVND")
+
 set(EXTERNAL_DIR "${CMAKE_SOURCE_DIR}/external")
+
+set(ASSIMP_BUILD_TESTS OFF)
 
 add_library(
     imgui
