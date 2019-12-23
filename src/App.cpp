@@ -35,22 +35,14 @@ int App::run() {
     //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // 3.0+ only
 
     // Create window with graphics context
-    GLFWwindow* window = glfwCreateWindow(1280, 720, "Dear ImGui GLFW+OpenGL3 example", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(1280, 720, "Shadow mapping", NULL, NULL);
     if (window == NULL)
         return 1;
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1); // Enable vsync
 
     // Initialize OpenGL loader
-#if defined(IMGUI_IMPL_OPENGL_LOADER_GL3W)
-    bool err = gl3wInit() != 0;
-#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLEW)
     bool err = glewInit() != GLEW_OK;
-#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLAD)
-    bool err = gladLoadGL() == 0;
-#else
-    bool err = false; // If you use IMGUI_IMPL_OPENGL_LOADER_CUSTOM, your loader is likely to requires some form of initialization.
-#endif
     if (err)
     {
         fprintf(stderr, "Failed to initialize OpenGL loader!\n");
@@ -60,8 +52,7 @@ int App::run() {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
-    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
@@ -82,10 +73,11 @@ int App::run() {
     glBindVertexArray(VertexArrayID);
 
     static const GLfloat g_vertex_buffer_data[] = {
-       -1.0f, -1.0f, 0.0f,
-       1.0f, -1.0f, 0.0f,
-       0.0f,  1.0f, 0.0f,
+        -1.0f, -1.0f, 0.0f,
+        1.0f, -1.0f, 0.0f,
+        0.0f,  1.0f, 0.0f,
     };
+
     GLuint vertexbuffer;
     // Generate 1 buffer, put the resulting identifier in vertexbuffer
     glGenBuffers(1, &vertexbuffer);
@@ -94,9 +86,17 @@ int App::run() {
     // Give our vertices to OpenGL.
     glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
 
-    bool my_tool_active = true;
+    bool settings_active = true;
     float my_color[4];
-
+    char fps_str[256];
+    
+    const char * shadow_mapping_algorithm[] = {
+        "Perspective shadow mapping",
+        "Variance shadow mapping",
+        "Exponential variance shadow mapping"
+    };
+    
+    int algorithm_selected = 0;
     // Main loop
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
@@ -105,37 +105,30 @@ int App::run() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::Begin("My First Tool", &my_tool_active, ImGuiWindowFlags_MenuBar);
-        if (ImGui::BeginMenuBar())
-        {
-            if (ImGui::BeginMenu("File"))
-            {
-                if (ImGui::MenuItem("Open..", "Ctrl+O")) { /* Do stuff */ }
-                if (ImGui::MenuItem("Save", "Ctrl+S"))   { /* Do stuff */ }
-                if (ImGui::MenuItem("Close", "Ctrl+W"))  { my_tool_active = false; }
-                ImGui::EndMenu();
-            }
-            ImGui::EndMenuBar();
+        // ImGui::ShowDemoWindow();
+
+        ImGui::SetNextWindowSize(ImVec2(280,350));
+        ImGui::Begin("Settings", &settings_active, 0);
+        
+        sprintf(fps_str, "%f", ImGui::GetIO().Framerate);
+        ImGui::InputText("Framerate", fps_str, IM_ARRAYSIZE(fps_str));
+        
+        for (int n = 0; n < IM_ARRAYSIZE(shadow_mapping_algorithm); n++) {
+            if (ImGui::Selectable(shadow_mapping_algorithm[n], algorithm_selected == n))
+                algorithm_selected = n;
         }
-
-        // Edit a color (stored as ~4 floats)
-        ImGui::ColorEdit4("Color", my_color);
-
-        // Plot some values
-        const float my_values[] = { 0.2f, 0.1f, 1.0f, 0.5f, 0.9f, 2.2f };
-        ImGui::PlotLines("Frame Times", my_values, IM_ARRAYSIZE(my_values));
-
-        // Display contents in a scrolling region
-        ImGui::TextColored(ImVec4(1,1,0,1), "Important Stuff");
+        
+        ImGui::Separator();
         ImGui::BeginChild("Scrolling");
         for (int n = 0; n < 50; n++)
-            ImGui::Text("%04d: Some text", n);
+            ImGui::Text("%04d:", n);
         ImGui::EndChild();
-        ImGui::End();
+        
+        ImGui::End(); 
 
         ImGui::Render();
 
-        int display_w, display_h;
+       int display_w, display_h;
         glfwGetFramebufferSize(window, &display_w, &display_h);
         glViewport(0, 0, display_w, display_h);
         glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
@@ -165,4 +158,6 @@ int App::run() {
 
     glfwDestroyWindow(window);
     glfwTerminate();
+    
+    return EXIT_SUCCESS;
 }
