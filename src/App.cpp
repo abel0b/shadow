@@ -52,9 +52,8 @@ int App::run() {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
-    // Setup Dear ImGui style
     ImGui::StyleColorsDark();
     //ImGui::StyleColorsClassic();
 
@@ -63,9 +62,6 @@ int App::run() {
     ImGui_ImplOpenGL3_Init(glsl_version);
 
 
-    // Our state
-    // bool show_demo_window = true;
-    // bool show_another_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
     GLuint VertexArrayID;
@@ -88,15 +84,25 @@ int App::run() {
 
     bool settings_active = true;
     float my_color[4];
-    char fps_str[256];
     
+    char fps_str[256];
+    char obj_str[256];
+
     const char * shadow_mapping_algorithm[] = {
         "Perspective shadow mapping",
         "Variance shadow mapping",
         "Exponential variance shadow mapping"
     };
+
+    const char * message = "Shadow mapping algorithm";
     
+    int nb_objects = 42;
     int algorithm_selected = 0;
+    double x = 12.0422424;
+    double y = 25.72542;
+    double z = 568.425376213;
+
+    auto color = ImVec4(242.0/255.0, 214.0/255.0, 75.0/255.0, 1);
     // Main loop
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
@@ -107,18 +113,37 @@ int App::run() {
 
         // ImGui::ShowDemoWindow();
 
-        ImGui::SetNextWindowSize(ImVec2(280,350));
+        ImGui::SetNextWindowSize(ImVec2(300, 480));
         ImGui::Begin("Settings", &settings_active, 0);
-        
-        sprintf(fps_str, "%f", ImGui::GetIO().Framerate);
-        ImGui::InputText("Framerate", fps_str, IM_ARRAYSIZE(fps_str));
-        
+         
+
+        ImGui::TextColored(color, "Shadow mapping algorithm");
         for (int n = 0; n < IM_ARRAYSIZE(shadow_mapping_algorithm); n++) {
             if (ImGui::Selectable(shadow_mapping_algorithm[n], algorithm_selected == n))
                 algorithm_selected = n;
         }
-        
         ImGui::Separator();
+
+        ImGui::TextColored(color, "Statistics");
+        
+        sprintf(fps_str, "%f", ImGui::GetIO().Framerate);
+        ImGui::InputText("Framerate", fps_str, IM_ARRAYSIZE(fps_str));
+        
+        sprintf(obj_str, "%d", nb_objects);
+        ImGui::InputText("Objects", obj_str, IM_ARRAYSIZE(obj_str));
+       
+        sprintf(obj_str, "%.3f", x);
+        ImGui::InputText("X-Coordinate", obj_str, IM_ARRAYSIZE(obj_str));
+        
+        sprintf(obj_str, "%.3f", y);
+        ImGui::InputText("Y-Coordinate", obj_str, IM_ARRAYSIZE(obj_str));
+
+        sprintf(obj_str, "%.3f", z);
+        ImGui::InputText("Z-Coordinate", obj_str, IM_ARRAYSIZE(obj_str));
+
+        ImGui::Separator();
+
+        ImGui::TextColored(color, "Console");
         ImGui::BeginChild("Scrolling");
         for (int n = 0; n < 50; n++)
             ImGui::Text("%04d:", n);
