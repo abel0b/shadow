@@ -4,6 +4,7 @@ add_executable(
     App.cpp
     Console.cpp
     ResourcePack.cpp
+    Camera.cpp
 )
 
 target_link_libraries(

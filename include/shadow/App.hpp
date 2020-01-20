@@ -3,6 +3,7 @@
 
 #include "shadow/Console.hpp"
 #include "shadow/ResourcePack.hpp"
+#include "shadow/Camera.hpp"
 
 class App {
 public:
@@ -11,6 +12,7 @@ public:
 private:
     Console console;
     ResourcePack resource_pack;
+    Camera camera;
 };
 
 #endif

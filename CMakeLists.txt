@@ -17,6 +17,7 @@ execute_process(
 include_directories(
     include
     external
+    external/glm
 )
 
 add_subdirectory(external)

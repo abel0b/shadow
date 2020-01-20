@@ -10,9 +10,9 @@ class ResourcePack {
 public:
     ResourcePack();
     void load_shader(std::string& name);
-    GLuint get_shader(std::string& name);
+    GLuint get_program(std::string& name);
 private:
-    std::map<std::string, GLuint> shaders;
+    std::map<std::string, GLuint> programs;
 };
 
 #endif

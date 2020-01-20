@@ -7,9 +7,10 @@
 #include "cimg/CImg.h"
 #include <stdio.h>
 #include "shadow/Console.hpp"
-
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
+#include "GL/glew.h"
+#include "GLFW/glfw3.h"
+#include "glm/glm.hpp"
+#include "glm/gtx/transform.hpp"
 
 using namespace cimg_library;
 
@@ -18,7 +19,7 @@ static void glfw_error_callback(int error, const char* description) {
 }
 
 App::App()
-    : console(128), resource_pack()  {
+    : console(128), resource_pack(), camera(glm::vec3(0.0, 0.0, 5.0), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0))  {
     console.log("Started application");
 }
 
@@ -32,7 +33,7 @@ int App::run() {
 
     const char* glsl_version = "#version 130";
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
 
     // Create window with graphics context
@@ -64,7 +65,7 @@ int App::run() {
     std::string debug_shader_name("debug");
     resource_pack.load_shader(debug_shader_name);
 
-    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    ImVec4 clear_color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 
     GLuint VertexArrayID;
     glGenVertexArrays(1, &VertexArrayID);
@@ -160,7 +161,15 @@ int App::run() {
         glfwGetFramebufferSize(window, &display_w, &display_h);
         glViewport(0, 0, display_w, display_h);
         glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
+        glm::mat4 mvp = camera.get_perspective() * camera.get_view();
+
+        GLuint MatrixID = glGetUniformLocation(resource_pack.get_program(debug_shader_name), "matrix");
+
+        glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp[0][0]);
+
+        glUseProgram(resource_pack.get_program(debug_shader_name));
 
         glEnableVertexAttribArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);

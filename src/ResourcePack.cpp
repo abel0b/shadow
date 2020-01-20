@@ -3,8 +3,12 @@
 #include <sstream>
 #include <fstream>
 
-ResourcePack::ResourcePack() {
+ResourcePack::ResourcePack() : programs() {
 
+}
+
+GLuint ResourcePack::get_program(std::string& name) {
+    return programs[name];
 }
 
 void ResourcePack::load_shader(std::string& name) {
@@ -14,9 +18,6 @@ void ResourcePack::load_shader(std::string& name) {
    
     std::string vertex_file_path = vertex_file_path_stream.str();
     std::string fragment_file_path = fragment_file_path_stream.str();
-
-    std::cout << vertex_file_path;
-    std::cout << name << std::endl;
 
     // Create the shaders
     GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
@@ -39,7 +40,7 @@ void ResourcePack::load_shader(std::string& name) {
 
     // Read the Fragment Shader code from the file
     std::string FragmentShaderCode;
-    std::ifstream FragmentShaderStream(fragment_file_path, std::ios::in);
+    std::ifstream FragmentShaderStream(fragment_file_path.c_str(), std::ios::in);
     if(FragmentShaderStream.is_open()){
         std::stringstream sstr;
         sstr << FragmentShaderStream.rdbuf();
@@ -51,7 +52,7 @@ void ResourcePack::load_shader(std::string& name) {
     int InfoLogLength;
 
     // Compile Vertex Shader
-    printf("Compiling shader : %s\n", vertex_file_path);
+    printf("Compiling shader : %s\n", vertex_file_path.c_str());
     char const * VertexSourcePointer = VertexShaderCode.c_str();
     glShaderSource(VertexShaderID, 1, &VertexSourcePointer , NULL);
     glCompileShader(VertexShaderID);
@@ -66,7 +67,7 @@ void ResourcePack::load_shader(std::string& name) {
     }
 
     // Compile Fragment Shader
-    printf("Compiling shader : %s\n", fragment_file_path);
+    printf("Compiling shader : %s\n", fragment_file_path.c_str());
     char const * FragmentSourcePointer = FragmentShaderCode.c_str();
     glShaderSource(FragmentShaderID, 1, &FragmentSourcePointer , NULL);
     glCompileShader(FragmentShaderID);
@@ -101,4 +102,6 @@ void ResourcePack::load_shader(std::string& name) {
 
     glDeleteShader(VertexShaderID);
     glDeleteShader(FragmentShaderID);
+
+    programs[name] = ProgramID;
 }
