@@ -22,14 +22,11 @@ option(GLFW_BUILD_DOCS "" OFF)
 option(GLFW_INSTALL "" OFF)
 add_subdirectory(glfw)
 
-option(ASSIMP_BUILD_TESTS "" OFF)
-option(ASSIMP_BUILD_ASSIMP_TOOLS "" OFF)
-add_subdirectory(assimp)
+add_subdirectory(tinyobjloader)
 
 include_directories(
     imgui
     glfw/include
     glew/include
-    glm
 )
 

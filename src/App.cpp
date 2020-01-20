@@ -11,6 +11,7 @@
 #include "GLFW/glfw3.h"
 #include "glm/glm.hpp"
 #include "glm/gtx/transform.hpp"
+#include "tiny_obj_loader.h"
 
 using namespace cimg_library;
 
@@ -25,6 +26,28 @@ App::App()
 
 int App::run() {
     CImg<unsigned char> image("../res/grass.png");
+
+    std::string inputfile = "../res/box.obj";
+    tinyobj::attrib_t attrib;
+    std::vector<tinyobj::shape_t> shapes;
+    std::vector<tinyobj::material_t> materials;
+
+    std::string warn;
+    std::string terr;
+
+    bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &terr, inputfile.c_str());
+
+    if (!warn.empty()) {
+          std::cout << warn << std::endl;
+    }
+
+    if (!terr.empty()) {
+          std::cerr << terr << std::endl;
+    }
+
+    if (!ret) {
+          exit(1);
+    }
 
     // Setup window
     glfwSetErrorCallback(glfw_error_callback);

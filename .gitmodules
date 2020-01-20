@@ -10,9 +10,9 @@
 [submodule "external/cimg"]
 	path = external/cimg
 	url = https://github.com/dtschump/CImg.git
-[submodule "external/assimp"]
-	path = external/assimp
-	url = https://github.com/assimp/assimp.git
 [submodule "external/glm"]
 	path = external/glm
 	url = git@github.com:g-truc/glm.git
+[submodule "external/tinyobjloader"]
+	path = external/tinyobjloader
+	url = git@github.com:syoyo/tinyobjloader.git

@@ -13,4 +13,5 @@ target_link_libraries(
     glfw ${GLFW_LIBRARIES}
     libglew_static
     imgui
+    tinyobjloader
 )

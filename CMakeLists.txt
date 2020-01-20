@@ -18,6 +18,7 @@ include_directories(
     include
     external
     external/glm
+    external/tinyobjloader
 )
 
 add_subdirectory(external)
