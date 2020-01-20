@@ -1,10 +1,13 @@
 cmake_minimum_required(VERSION 3.0)
 
-project(3d)
+project(shadow LANGUAGES CXX)
 
 enable_testing()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+
+
+# set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
 
 execute_process(
     COMMAND git submodule update --init --recursive

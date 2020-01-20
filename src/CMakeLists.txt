@@ -1,11 +1,13 @@
 add_executable(
-    3d
+    shadow
     main.cpp
     App.cpp
+    Console.cpp
+    ResourcePack.cpp
 )
 
 target_link_libraries(
-    3d
+    shadow
     ${OPENGL_gl_LIBRARY}
     glfw ${GLFW_LIBRARIES}
     libglew_static

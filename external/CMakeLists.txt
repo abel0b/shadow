@@ -4,8 +4,6 @@ set(OpenGL_GL_PREFERENCE "GLVND")
 
 set(EXTERNAL_DIR "${CMAKE_SOURCE_DIR}/external")
 
-set(ASSIMP_BUILD_TESTS OFF)
-
 add_library(
     imgui
     imgui/imgui.cpp
@@ -18,8 +16,15 @@ add_library(
 
 target_compile_definitions(imgui PUBLIC IMGUI_IMPL_OPENGL_LOADER_GLEW)
 
+option(glew-cmake_BUILD_SHARED "" OFF)
 add_subdirectory(glew)
+
+option(GLFW_BUILD_DOCS "" OFF)
+option(GLFW_INSTALL "" OFF)
 add_subdirectory(glfw)
+
+option(ASSIMP_BUILD_TESTS "" OFF)
+option(ASSIMP_BUILD_ASSIMP_TOOLS "" OFF)
 add_subdirectory(assimp)
 
 include_directories(

@@ -1,4 +1,4 @@
-#include "3d/App.hpp"
+#include "shadow/App.hpp"
 #include <iostream>
 #include <cstdlib>
 #include "imgui/imgui.h"
@@ -6,6 +6,7 @@
 #include "imgui-backend/imgui_impl_opengl3.h"
 #include "cimg/CImg.h"
 #include <stdio.h>
+#include "shadow/Console.hpp"
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -16,8 +17,9 @@ static void glfw_error_callback(int error, const char* description) {
     fprintf(stderr, "Glfw Error %d: %s\n", error, description);
 }
 
-App::App() {
-    std::cout << "Starting app" << std::endl;
+App::App()
+    : console(128), resource_pack()  {
+    console.log("Started application");
 }
 
 int App::run() {
@@ -31,8 +33,7 @@ int App::run() {
     const char* glsl_version = "#version 130";
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-    //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
-    //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // 3.0+ only
+    // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
 
     // Create window with graphics context
     GLFWwindow* window = glfwCreateWindow(1280, 720, "Shadow mapping", NULL, NULL);
@@ -43,8 +44,7 @@ int App::run() {
 
     // Initialize OpenGL loader
     bool err = glewInit() != GLEW_OK;
-    if (err)
-    {
+    if (err) {
         fprintf(stderr, "Failed to initialize OpenGL loader!\n");
         return 1;
     }
@@ -61,6 +61,8 @@ int App::run() {
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version);
 
+    std::string debug_shader_name("debug");
+    resource_pack.load_shader(debug_shader_name);
 
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
@@ -145,15 +147,16 @@ int App::run() {
 
         ImGui::TextColored(color, "Console");
         ImGui::BeginChild("Scrolling");
-        for (int n = 0; n < 50; n++)
-            ImGui::Text("%04d:", n);
+        for (auto log = console.history.begin(); log != console.history.end(); ++log) {
+            ImGui::Text("[%s] %s", (*log).formatted_date.c_str(), (*log).message.c_str());
+        }
         ImGui::EndChild();
         
         ImGui::End(); 
 
         ImGui::Render();
 
-       int display_w, display_h;
+        int display_w, display_h;
         glfwGetFramebufferSize(window, &display_w, &display_h);
         glViewport(0, 0, display_w, display_h);
         glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
@@ -162,12 +165,12 @@ int App::run() {
         glEnableVertexAttribArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
         glVertexAttribPointer(
-           0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-           3,                  // size
-           GL_FLOAT,           // type
-           GL_FALSE,           // normalized?
-           0,                  // stride
-           (void*)0            // array buffer offset
+            0,
+            3,
+            GL_FLOAT,
+            GL_FALSE,
+            0,
+            (void*)0
         );
         // Draw the triangle !
         glDrawArrays(GL_TRIANGLES, 0, 3); // Starting from vertex 0; 3 vertices total -> 1 triangle

@@ -1,4 +1,4 @@
-#include "3d/App.hpp"
+#include "shadow/App.hpp"
 
 int main(int argc, char * argv[]) {
     App app;
