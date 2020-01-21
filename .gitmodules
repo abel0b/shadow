@@ -12,7 +12,7 @@
 	url = https://github.com/dtschump/CImg.git
 [submodule "external/glm"]
 	path = external/glm
-	url = git@github.com:g-truc/glm.git
+	url = https://github.com/g-truc/glm.git
 [submodule "external/tinyobjloader"]
 	path = external/tinyobjloader
-	url = git@github.com:syoyo/tinyobjloader.git
+	url = https://github.com/syoyo/tinyobjloader.git
