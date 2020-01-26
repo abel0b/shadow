@@ -7,7 +7,6 @@
 #include "cimg/CImg.h"
 #include <stdio.h>
 #include "shadow/Console.hpp"
-#include "GL/glew.h"
 #include "GLFW/glfw3.h"
 #include "glm/glm.hpp"
 #include "glm/gtx/transform.hpp"
@@ -19,16 +18,12 @@ static void glfw_error_callback(int error, const char* description) {
     fprintf(stderr, "Glfw Error %d: %s\n", error, description);
 }
 
-App::App()
-    : console(128), resource_pack(), camera(glm::vec3(0.0, 0.0, 5.0), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0))  {
+App::App() :
+    console(128),
+    resource_pack(),
+    camera(glm::vec3(0.0, 1.0, 5.0), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0)),
+    scene() {
     console.log("Started application");
-}
-
-
-float FoV = 45.0f;
-
-void scroll_callback(GLFWwindow * window, double xoffset, double yoffset) {
-    FoV += yoffset * 5;
 }
 
 int App::run() {
@@ -61,7 +56,7 @@ int App::run() {
     if (!glfwInit())
         return 1;
 
-    const char* glsl_version = "#version 330";
+    const char* glsl_version = "#version 330 core";
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
@@ -92,8 +87,10 @@ int App::run() {
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version);
 
-    std::string basic_shader_name("basic");
-    resource_pack.load_shader(basic_shader_name);
+    std::string standard_shader("standard");
+    std::string green_shader("green");
+    resource_pack.load_shader(standard_shader);
+    resource_pack.load_shader(green_shader);
 
     ImVec4 clear_color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 
@@ -189,7 +186,8 @@ int App::run() {
     glGenBuffers(1, &colorbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(g_color_buffer_data), g_color_buffer_data, GL_STATIC_DRAW);
-
+    
+    scene.update();
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
@@ -210,25 +208,20 @@ int App::run() {
     
     int nb_objects = 42;
     int algorithm_selected = 0;
-    double x = 12.0422424;
-    double y = 25.72542;
-    double z = 568.425376213;
+    double x = camera.position.x;
+    double y = camera.position.y;
+    double z = camera.position.z;
 
     auto color = ImVec4(242.0/255.0, 214.0/255.0, 75.0/255.0, 1);
-    
-    // position
-    glfwSetScrollCallback(
-        window,
-        scroll_callback
-    );   
 
-    {
-        int display_w, display_h;
-        glfwGetFramebufferSize(window, &display_w, &display_h);
-        glfwSetCursorPos(window, display_w/2, display_h/2);
-    }
+    camera.initialize(window);
+    glfwGetFramebufferSize(window, &display_w, &display_h);
+    glfwSetCursorPos(window, display_w/2, display_h/2);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-// Main loop
+    bool escaping = false;
+
+    // Main loop
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
 
@@ -236,11 +229,11 @@ int App::run() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        // ImGui::ShowDemoWindow();
-
         ImGui::SetNextWindowSize(ImVec2(300, 480));
         ImGui::Begin("Settings", &settings_active, 0);
-         
+        
+        ImGui::TextColored(color, "Controls");
+        ImGui::Text("Move camera with arrows\nToggle camera mode with <escape>\n");
 
         ImGui::TextColored(color, "Shadow mapping algorithm");
         for (int n = 0; n < IM_ARRAYSIZE(shadow_mapping_algorithm); n++) {
@@ -254,16 +247,13 @@ int App::run() {
         sprintf(fps_str, "%f", ImGui::GetIO().Framerate);
         ImGui::InputText("Framerate", fps_str, IM_ARRAYSIZE(fps_str));
         
-        sprintf(obj_str, "%d", nb_objects);
-        ImGui::InputText("Objects", obj_str, IM_ARRAYSIZE(obj_str));
-       
-        sprintf(obj_str, "%.3f", x);
+        sprintf(obj_str, "%.3f", camera.position.x);
         ImGui::InputText("X-Coordinate", obj_str, IM_ARRAYSIZE(obj_str));
         
-        sprintf(obj_str, "%.3f", y);
+        sprintf(obj_str, "%.3f", camera.position.y);
         ImGui::InputText("Y-Coordinate", obj_str, IM_ARRAYSIZE(obj_str));
 
-        sprintf(obj_str, "%.3f", z);
+        sprintf(obj_str, "%.3f", camera.position.z);
         ImGui::InputText("Z-Coordinate", obj_str, IM_ARRAYSIZE(obj_str));
 
         ImGui::Separator();
@@ -279,74 +269,54 @@ int App::run() {
 
         ImGui::Render();
 
-        int display_w, display_h;
-        glfwGetFramebufferSize(window, &display_w, &display_h);
+
+        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS && !escaping) {
+            escaping = true;
+            glfwSetInputMode(window, GLFW_CURSOR, (paused)?GLFW_CURSOR_DISABLED:GLFW_CURSOR_NORMAL);
+            paused = !paused;
+        }
         
-        double mouse_x, mouse_y;
-        glfwGetCursorPos(window, &mouse_x, &mouse_y);
-        glfwSetCursorPos(window, display_w/2, display_h/2);
-        
+        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_RELEASE && escaping) {
+            escaping = false;
+        }
+
         current_time = glfwGetTime();
         delta_time = current_time - last_time;
         last_time = current_time;
-
-        horizontal_angle += mouse_speed * delta_time * (display_w/2.0 - mouse_x);
-        vertical_angle   += mouse_speed * delta_time * (display_h/2.0 - mouse_y);
-
-        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS){
-            glfwSetWindowShouldClose(window, true);
-        }
-        glm::vec3 direction(
-            cos(vertical_angle) * sin(horizontal_angle),
-            sin(vertical_angle),
-            cos(vertical_angle) * cos(horizontal_angle)
-        );
-
-        glm::vec3 right = glm::vec3(
-            sin(horizontal_angle - 3.14159f/2.0f),
-            0,
-            cos(horizontal_angle - 3.14159f/2.0f)
-        );
-
-        glm::mat4 projection = glm::perspective(glm::radians(FoV), (float)display_w / (float)display_h, 0.1f, 100.0f);
-        glm::vec3 up = glm::cross(right, direction);
-
-        glm::mat4 view = glm::lookAt(
-            position,
-            position+direction,
-            up
-        );
-
-        if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS){
-                position += direction * delta_time * speed;
-        }
-        // Move backward
-        if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS){
-            position -= direction * delta_time * speed;
-        }
         
-        // Strafe right
-        if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS){
-            position += right * delta_time * speed;
-        }
-        
-        // Strafe left
-        if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS){
-            position -= right * delta_time * speed;
+        glfwGetFramebufferSize(window, &display_w, &display_h);
+            
+        if(!paused) {    
+            glfwGetCursorPos(window, &mouse_x, &mouse_y);
+            glfwSetCursorPos(window, display_w/2.0, display_h/2.0);
+            camera.update_angle(delta_time, mouse_x, mouse_y, display_w, display_h);
+            
+            if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+                camera.move_up(delta_time);
+            }
+            if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS){
+                camera.move_down(delta_time);
+            }
+            if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS){
+                camera.move_right(delta_time);
+            }
+            if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+                camera.move_left(delta_time);
+            }
         }
 
+            
         glViewport(0, 0, display_w, display_h);
         glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
-        glm::mat4 mvp = projection * view;
-        // glm::mat4 mvp = camera.get_perspective() * camera.get_view();
+        glm::mat4 mvp = camera.get_projection(static_cast<float>(display_w)/display_h) * camera.get_view();
 
-        GLuint MatrixID = glGetUniformLocation(resource_pack.get_program(basic_shader_name), "matrix");
+        GLuint MatrixID = glGetUniformLocation(resource_pack.get_program(standard_shader), "matrix");
 
         glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp[0][0]);
 
-        glUseProgram(resource_pack.get_program(basic_shader_name));
+        glUseProgram(resource_pack.get_program(standard_shader));
 
         glEnableVertexAttribArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
@@ -358,7 +328,7 @@ int App::run() {
             0,
             (void*)0
         );
-        
+
         glEnableVertexAttribArray(1);
         glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
         glVertexAttribPointer(
@@ -369,10 +339,13 @@ int App::run() {
             0,
             (void*)0
         );
-        
-        // Draw the triangle !
+
         glDrawArrays(GL_TRIANGLES, 0, 12*3);
+        
         glDisableVertexAttribArray(0);
+        glDisableVertexAttribArray(1);
+
+        scene.render(display_w, display_h, resource_pack, camera);
 
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(window);

@@ -13,6 +13,11 @@ add_library(
     imgui-backend/imgui_impl_opengl3.cpp
 )
 
+target_link_libraries(
+    imgui
+    libglew_static
+)
+
 target_compile_definitions(imgui PUBLIC IMGUI_IMPL_OPENGL_LOADER_GLEW)
 
 option(glew-cmake_BUILD_SHARED "" OFF)

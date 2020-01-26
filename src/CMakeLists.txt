@@ -5,13 +5,12 @@ add_executable(
     Console.cpp
     ResourcePack.cpp
     Camera.cpp
+    Scene.cpp
 )
 
 target_link_libraries(
     shadow
-    ${OPENGL_gl_LIBRARY}
-    glfw ${GLFW_LIBRARIES}
-    libglew_static
+    glfw
     imgui
     tinyobjloader
 )
