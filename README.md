@@ -1,15 +1,23 @@
 [![pipeline status](https://gitlab.com/abeliam/3d/badges/master/pipeline.svg)](https://gitlab.com/abeliam/3d/commits/master)
-# 3d
+# Shadow mapping algorithms
+Comparison of shadow mapping algorithms
 
-## Usage
-### build
+### Usage
+#### Compile
+This project use [CMake](https://cmake.org) build system. To build the program run the following commands.
 ```shell
 mkdir build
 cd build
 cmake ..
 make -j8
 ```
-### test
-```shell
-make test
-```
+
+#### Screenshot
+![Screenshot](docs/screenshot.png)
+
+#### Controls
+Toggle between camera and settings mode with `escape`.
+
+Move the camera position with arrows or WASD keys.
+
+Rotate camera angle with mouse.

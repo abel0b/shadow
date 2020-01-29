@@ -10,11 +10,17 @@ enum class Shadow {
     ShadowMapping,
 };
 
+enum class RenderPass {
+    GenerateDepthMap,
+    Display
+};
+
 class Scene {
 public:
     Scene();
     void update(ResourcePack& resource_pack);
     void render(Shadow shadow, int display_w, int display_h, ResourcePack& render, Camera& camera);
+    void render_pass(RenderPass pass, Shadow shadow, int display_w, int display_h, ResourcePack& resource_pack, Camera& camera);
 
 private:
     int shadow_width = 1024;
@@ -27,6 +33,7 @@ private:
     std::vector<GLfloat> grid_vertices;
     GLuint grid_index_buffer;
     std::vector<unsigned int> grid_indices;
+    GLuint depth_map_framebuffer;
     GLuint depth_map;
     GLuint object_vertex_buffer;
     GLuint object_normal_buffer;

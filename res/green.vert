@@ -2,8 +2,12 @@
 
 layout(location = 0) in vec3 position;
 
-uniform mat4 matrix;
+out vec4 shadow_coord;
+
+uniform mat4 mvp;
+uniform mat4 depth_bias_mvp;
 
 void main() {
-    gl_Position = matrix * vec4(position, 1.0);
+    shadow_coord = depth_bias_mvp * vec4(position,1);
+    gl_Position = mvp * vec4(position, 1.0);
 }
