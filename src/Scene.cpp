@@ -7,6 +7,7 @@
 #include "imgui-backend/imgui_impl_opengl3.h"
 #include "GLFW/glfw3.h"
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/transform.hpp>
 
 Scene::Scene() :
     grid_width(20),
@@ -95,12 +96,14 @@ const char * get_gl_err_str(GLenum err) {
     }
 }
 
-void Scene::render(Shadow shadow, int display_w, int display_h, ResourcePack& resource_pack, Camera& camera) {
-    // Generate depth map
-    render_pass(RenderPass::GenerateDepthMap, shadow, display_w, display_h, resource_pack, camera);
+void Scene::render(Shadow shadow, bool light_projection, int display_w, int display_h, ResourcePack& resource_pack, Camera& camera) {
+    if (shadow != Shadow::NoShadow) {
+        // Generate depth map
+        render_pass(RenderPass::GenerateDepthMap, shadow, light_projection, display_w, display_h, resource_pack, camera);
+    }
 
     // Render objects
-    render_pass(RenderPass::Display, shadow, display_w, display_h, resource_pack, camera);
+    render_pass(RenderPass::Display, shadow, light_projection, display_w, display_h, resource_pack, camera);
 
     // Debug OpenGl errors
     GLenum err;
@@ -109,11 +112,12 @@ void Scene::render(Shadow shadow, int display_w, int display_h, ResourcePack& re
     }
 }
 
-void Scene::render_pass(RenderPass pass, Shadow shadow, int display_w, int display_h, ResourcePack& resource_pack, Camera& camera) {
-    std::string green_shader("green");
+void Scene::render_pass(RenderPass pass, Shadow shadow, bool light_projection, int display_w, int display_h, ResourcePack& resource_pack, Camera& camera) {
+    std::string shadow_shader("shadow");
+    std::string shadowpcf_shader("shadowpcf");
     std::string blue_shader("blue");
     std::string box_mesh("box");
-    std::string shadowmap_shader("shadowmap");
+    std::string depthmap_shader("depthmap");
     GLuint uniform = -1;
     GLuint program_id = -1;
 
@@ -131,13 +135,24 @@ void Scene::render_pass(RenderPass pass, Shadow shadow, int display_w, int displ
     }
 
     glm::mat4 mvp = camera.get_projection(static_cast<float>(display_w)/display_h) * camera.get_view();
-    float near_plane = -10.0f, far_plane = 10.0f;
-    glm::mat4 lightProjection = glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, near_plane, far_plane);
+    float near_plane = -10.0f, far_plane = 20.0f;
     glm::mat4 lightView = glm::lookAt(
         glm::vec3(-2.0f, 4.0f, -1.0f),
         glm::vec3(0.0f, 0.0f,  0.0f),
         glm::vec3(0.0f, 1.0f,  0.0f)
     );
+    glm::mat4 lightProjection;
+    if (light_projection) {
+        lightProjection = glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, near_plane, far_plane);
+    }
+    else {
+        lightProjection = glm::perspective(
+            (float)glm::radians(0.45),
+            static_cast<float>(display_w)/display_h,
+            near_plane,
+            far_plane
+        );
+    }
     glm::mat4 bias(
         0.5, 0.0, 0.0, 0.0,
         0.0, 0.5, 0.0, 0.0,
@@ -145,7 +160,6 @@ void Scene::render_pass(RenderPass pass, Shadow shadow, int display_w, int displ
         0.5, 0.5, 0.5, 1.0
     );
     glm::mat4 depth_mvp = lightProjection * lightView;
-    // glm::mat4 depth_mvp = mvp;
     glm::mat4 depth_bias_mvp = bias * depth_mvp;
 
     // Draw ground
@@ -166,13 +180,23 @@ void Scene::render_pass(RenderPass pass, Shadow shadow, int display_w, int displ
 
     switch (pass) {
         case RenderPass::GenerateDepthMap:
-            program_id = resource_pack.get_program(shadowmap_shader);
+            program_id = resource_pack.get_program(depthmap_shader);
             glUseProgram(program_id);
             uniform = glGetUniformLocation(program_id, "depth_mvp");
             glUniformMatrix4fv(uniform, 1, GL_FALSE, &depth_mvp[0][0]);
             break;
         case RenderPass::Display:
-            program_id = resource_pack.get_program(green_shader);
+            switch (shadow) {
+                case Shadow::ShadowMapping:
+                    program_id = resource_pack.get_program(shadow_shader);
+                    break;
+                case Shadow::ShadowMappingPCF:
+                    program_id = resource_pack.get_program(shadowpcf_shader);
+                    break;
+                default:
+                    std::cout << "UNIMPLEMENTED" << std::endl;
+                    exit(1);
+            }
             glUseProgram(program_id);
             uniform = glGetUniformLocation(program_id, "mvp");
             glUniformMatrix4fv(uniform, 1, GL_FALSE, &mvp[0][0]);
@@ -217,7 +241,7 @@ void Scene::render_pass(RenderPass pass, Shadow shadow, int display_w, int displ
 
     switch (pass) {
         case RenderPass::GenerateDepthMap:
-            program_id = resource_pack.get_program(shadowmap_shader);
+            program_id = resource_pack.get_program(depthmap_shader);
             glUseProgram(program_id);
             uniform = glGetUniformLocation(program_id, "depth_mvp");
             glUniformMatrix4fv(uniform, 1, GL_FALSE, &depth_mvp[0][0]);

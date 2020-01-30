@@ -65,13 +65,15 @@ int App::run() {
     ImGui_ImplOpenGL3_Init(glsl_version);
 
     std::string standard_shader("standard");
-    std::string shadowmap_shader("shadowmap");
-    std::string green_shader("green");
+    std::string depthmap_shader("depthmap");
+    std::string shadow_shader("shadow");
+    std::string shadowpcf_shader("shadowpcf");
     std::string blue_shader("blue");
     std::string box_mesh("box");
     resource_pack.load_shader(standard_shader);
-    resource_pack.load_shader(shadowmap_shader);
-    resource_pack.load_shader(green_shader);
+    resource_pack.load_shader(depthmap_shader);
+    resource_pack.load_shader(shadow_shader);
+    resource_pack.load_shader(shadowpcf_shader);
     resource_pack.load_shader(blue_shader);
     resource_pack.load_mesh(box_mesh);
 
@@ -93,22 +95,23 @@ int App::run() {
     char obj_str[256];
 
     const char * shadow_mapping_algorithm[] = {
-        "None",
+        // "None",
         "Shadow mapping",
-        //"Perspective shadow mapping",
+        "Shadow mapping PCF"
         //"Variance shadow mapping",
         //"Exponential variance shadow mapping"
     };
 
     Shadow shadow_types[] = {
-        Shadow::NoShadow,
-        Shadow::ShadowMapping
+        // Shadow::NoShadow,
+        Shadow::ShadowMapping,
+        Shadow::ShadowMappingPCF
     };
 
     const char * message = "Shadows";
 
     int nb_objects = 42;
-    Shadow shadow = Shadow::NoShadow;
+    Shadow shadow = Shadow::ShadowMapping;
     double x = camera.position.x;
     double y = camera.position.y;
     double z = camera.position.z;
@@ -121,6 +124,8 @@ int App::run() {
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     bool escaping = false;
+
+    bool light_projection = true;
 
     // Main loop
     while (!glfwWindowShouldClose(window)) {
@@ -141,6 +146,13 @@ int App::run() {
             if (ImGui::Selectable(shadow_mapping_algorithm[n], shadow == shadow_types[n]))
                 shadow = shadow_types[n];
         }
+        ImGui::Separator();
+
+        ImGui::TextColored(color, "Light projection");
+        if (ImGui::Selectable("Orthographic", light_projection))
+            light_projection = true;
+        if (ImGui::Selectable("Perspective", !light_projection))
+            light_projection = false;
         ImGui::Separator();
 
         ImGui::TextColored(color, "Statistics");
@@ -207,7 +219,7 @@ int App::run() {
 
         glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
 
-        scene.render(shadow, display_w, display_h, resource_pack, camera);
+        scene.render(shadow, light_projection, display_w, display_h, resource_pack, camera);
 
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(window);
